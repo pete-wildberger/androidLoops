@@ -13,11 +13,12 @@ import android.os.Bundle
 import android.os.Environment
 import android.support.v4.app.ActivityCompat
 import android.support.v4.content.ContextCompat
+import android.util.Log
 import android.widget.Toast
 import kotlinx.android.synthetic.main.activity_main.*
 import java.io.IOException
 
-
+private const val LOG_TAG = "AudioRecordTest"
 
 class MainActivity : AppCompatActivity() {
 
@@ -39,7 +40,6 @@ class MainActivity : AppCompatActivity() {
         mediaRecorder?.setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
         mediaRecorder?.setOutputFile(output)
 
-        mediaPlayer =  MediaPlayer()
 
         button_start_recording.setOnClickListener {
             if (ContextCompat.checkSelfPermission(this,
@@ -103,9 +103,27 @@ class MainActivity : AppCompatActivity() {
             mediaRecorder?.stop()
             mediaRecorder?.release()
             state = false
+            startPlaying()
         }else{
             Toast.makeText(this, "You are not recording right now!", Toast.LENGTH_SHORT).show()
         }
+    }
+    private fun startPlaying() {
+        mediaPlayer = MediaPlayer().apply {
+            try {
+                setDataSource(output)
+                setLooping(true)
+                prepare()
+                start()
+            } catch (e: IOException) {
+                Log.e(LOG_TAG, "prepare() failed")
+            }
+        }
+    }
+
+    private fun stopPlaying() {
+        mediaPlayer?.release()
+        mediaPlayer = null
     }
 
     override fun onRequestPermissionsResult(
@@ -120,5 +138,9 @@ class MainActivity : AppCompatActivity() {
                 //User denied Permission.
             }
         }
+    }
+    override fun onDestroy() {
+        super.onDestroy()
+        deleteFile(output)
     }
 }

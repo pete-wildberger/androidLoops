@@ -9,7 +9,7 @@
             android:id="@+id/textview_sound_recorder_heading"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Sound Recorder"
+            android:text="Looper"
             android:layout_centerHorizontal="true"
             android:textSize="32dp"
             android:textStyle="bold"
