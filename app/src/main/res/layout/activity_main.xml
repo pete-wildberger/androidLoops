@@ -19,30 +19,13 @@
 
     <Button
             android:id="@+id/button_start_recording"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Start"
+            android:layout_width="220dp"
+            android:layout_height="220dp"
+            android:text="Loop"
+            android:background = "@drawable/circle"
             android:layout_alignParentBottom="true"
-            android:layout_marginLeft="32dp"
-            android:layout_marginBottom="32dp"
+            android:layout_marginLeft="100dp"
+            android:layout_marginBottom="178dp"
             android:layout_centerVertical="true"/>
 
-    <Button
-            android:id="@+id/button_pause_recording"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Pause"
-            android:layout_alignParentBottom="true"
-            android:layout_centerHorizontal="true"
-            android:layout_marginBottom="32dp"/>
-
-    <Button
-            android:id="@+id/button_stop_recording"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Stop"
-            android:layout_alignParentBottom="true"
-            android:layout_alignParentRight="true"
-            android:layout_marginBottom="32dp"
-            android:layout_marginRight="32dp"/>
 </RelativeLayout>
