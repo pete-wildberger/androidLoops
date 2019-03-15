@@ -12,22 +12,37 @@ import android.support.v4.content.ContextCompat
 import android.widget.Toast
 import com.example.Looper.LoopPlayer.LoopPlayer
 import kotlinx.android.synthetic.main.activity_main.*
+//import java.io.File
+//import java.io.FileOutputStream
+//import java.io.FileNotFoundException
 import java.io.IOException
+
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.ListView;
 import java.util.*
+import android.R.attr.data
+import kotlin.collections.ArrayList
 
 
 class MainActivity : AppCompatActivity() {
 
+    var paths: ArrayList<String>? = null
+    var adapter: ArrayAdapter<String>? = null
     private var mediaRecorder: MediaRecorder? = null
-    private var state: Boolean = false
     private var start: Boolean = true
     private var tracks: HashMap<String, LoopPlayer> = hashMapOf()
-
+    private var parent: String = Environment.getExternalStorageDirectory().absolutePath
     private lateinit var lastPath: String
+    private lateinit var lv: ListView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+        paths = ArrayList()
+        val adapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, paths)
+        lv = findViewById<ListView>(R.id.listview_1)
+        lv.adapter = adapter
 
         mediaRecorder =  MediaRecorder()
 
@@ -36,9 +51,8 @@ class MainActivity : AppCompatActivity() {
         mediaRecorder?.setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
 
 
-
         button_start_recording.setOnClickListener {
-            var path: String = Environment.getExternalStorageDirectory().absolutePath + "/Looper/" + now() +"recording.aac"
+            var path: String = parent + now() + "recording.aac"
             var loopPlayer: LoopPlayer? = null
             if (ContextCompat.checkSelfPermission(this,
                     Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED && ContextCompat.checkSelfPermission(this,
@@ -51,10 +65,12 @@ class MainActivity : AppCompatActivity() {
                     startRecording(path)
                     lastPath = path
                     start = !start
+
                 } else {
                     stopRecording(lastPath)
                     loopPlayer = LoopPlayer(lastPath)
                     tracks[lastPath] = loopPlayer
+                    paths?.add(lastPath)
                     tracks[lastPath]?.startPlaying()
                 }
             }

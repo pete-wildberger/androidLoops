@@ -16,7 +16,10 @@
             android:textColor="#000"
             android:layout_marginTop="32dp"
     />
-
+    <ListView
+            android:id="@+id/listview_1"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"/>
     <Button
             android:id="@+id/button_start_recording"
             android:layout_width="220dp"
