@@ -2,71 +2,72 @@
 package com.example.Looper
 
 import android.Manifest
-import android.annotation.SuppressLint
-import android.annotation.TargetApi
 import android.content.pm.PackageManager
 import android.media.MediaRecorder
-import android.media.MediaPlayer
-import android.os.Build
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.os.Environment
 import android.support.v4.app.ActivityCompat
 import android.support.v4.content.ContextCompat
-import android.util.Log
 import android.widget.Toast
+import com.example.Looper.LoopPlayer.LoopPlayer
 import kotlinx.android.synthetic.main.activity_main.*
 import java.io.IOException
+import java.util.*
 
-private const val LOG_TAG = "AudioRecordTest"
 
 class MainActivity : AppCompatActivity() {
 
-    private var output: String? = null
     private var mediaRecorder: MediaRecorder? = null
-    private var mediaPlayer: MediaPlayer? = null
     private var state: Boolean = false
-    private var recordingStopped: Boolean = false
+    private var start: Boolean = true
+    private var tracks: HashMap<String, LoopPlayer> = hashMapOf()
+
+    private lateinit var lastPath: String
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
         mediaRecorder =  MediaRecorder()
-        output = Environment.getExternalStorageDirectory().absolutePath + "/recording.aac"
 
         mediaRecorder?.setAudioSource(MediaRecorder.AudioSource.MIC)
         mediaRecorder?.setOutputFormat(MediaRecorder.OutputFormat.AAC_ADTS)
         mediaRecorder?.setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
-        mediaRecorder?.setOutputFile(output)
+
 
 
         button_start_recording.setOnClickListener {
+            var path: String = Environment.getExternalStorageDirectory().absolutePath + "/Looper/" + now() +"recording.aac"
+            var loopPlayer: LoopPlayer? = null
             if (ContextCompat.checkSelfPermission(this,
                     Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED && ContextCompat.checkSelfPermission(this,
                     Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
                 val permissions = arrayOf(android.Manifest.permission.RECORD_AUDIO, android.Manifest.permission.WRITE_EXTERNAL_STORAGE, android.Manifest.permission.READ_EXTERNAL_STORAGE)
                 ActivityCompat.requestPermissions(this, permissions,0)
             } else {
-                startRecording()
+                if(start){
+                    mediaRecorder?.setOutputFile(path)
+                    startRecording(path)
+                    lastPath = path
+                    start = !start
+                } else {
+                    stopRecording(lastPath)
+                    loopPlayer = LoopPlayer(lastPath)
+                    tracks[lastPath] = loopPlayer
+                    tracks[lastPath]?.startPlaying()
+                }
             }
+
         }
 
-        button_stop_recording.setOnClickListener{
-            stopRecording()
-        }
-
-        button_pause_recording.setOnClickListener {
-            pauseRecording()
-        }
     }
 
-    private fun startRecording() {
+    private fun startRecording(path: String) {
         try {
             mediaRecorder?.prepare()
             mediaRecorder?.start()
-            state = true
-            Toast.makeText(this, "Recording started!", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Recording started!" + path, Toast.LENGTH_SHORT).show()
         } catch (e: IllegalStateException) {
             e.printStackTrace()
         } catch (e: IOException) {
@@ -74,73 +75,35 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    @SuppressLint("RestrictedApi", "SetTextI18n")
-    @TargetApi(Build.VERSION_CODES.N)
-    private fun pauseRecording() {
-        if(state) {
-            if(!recordingStopped){
-                Toast.makeText(this,"Stopped!", Toast.LENGTH_SHORT).show()
-                mediaRecorder?.pause()
-                recordingStopped = true
-                button_pause_recording.text = "Resume"
-            }else{
-                resumeRecording()
-            }
-        }
-    }
 
-    @SuppressLint("RestrictedApi", "SetTextI18n")
-    @TargetApi(Build.VERSION_CODES.N)
-    private fun resumeRecording() {
-        Toast.makeText(this,"Resume!", Toast.LENGTH_SHORT).show()
-        mediaRecorder?.resume()
-        button_pause_recording.text = "Pause"
-        recordingStopped = false
-    }
-
-    private fun stopRecording(){
-        if(state){
+    private fun stopRecording(path: String) {
+        try {
             mediaRecorder?.stop()
-            mediaRecorder?.release()
-            state = false
-            startPlaying()
-        }else{
-            Toast.makeText(this, "You are not recording right now!", Toast.LENGTH_SHORT).show()
+            mediaRecorder?.reset()
+            tracks[path]?.startPlaying()
+            start = true
+        } catch (e: IllegalStateException) {
+            e.printStackTrace()
+        } catch (e: IOException) {
+            e.printStackTrace()
         }
-    }
-    private fun startPlaying() {
-        mediaPlayer = MediaPlayer().apply {
-            try {
-                setDataSource(output)
-                setLooping(true)
-                prepare()
-                start()
-            } catch (e: IOException) {
-                Log.e(LOG_TAG, "prepare() failed")
-            }
-        }
-    }
 
-    private fun stopPlaying() {
-        mediaPlayer?.release()
-        mediaPlayer = null
     }
-
-    override fun onRequestPermissionsResult(
-        requestCode: Int, permissions: Array<String>,
-        grantResults: IntArray
-    ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == 10) {
-            if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                startRecording()
-            } else {
-                //User denied Permission.
-            }
-        }
-    }
+//    override fun onRequestPermissionsResult(
+//        requestCode: Int, permissions: Array<String>,
+//        grantResults: IntArray
+//    ) {
+//        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+//        if (requestCode == 10) {
+//            if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+//                startRecording()
+//            } else {
+//                //User denied Permission.
+//            }
+//        }
+//    }
     override fun onDestroy() {
         super.onDestroy()
-        deleteFile(output)
+        deleteFile(Environment.getExternalStorageDirectory().absolutePath + "/Looper/")
     }
 }
