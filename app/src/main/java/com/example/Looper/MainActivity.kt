@@ -31,8 +31,7 @@ class MainActivity : AppCompatActivity() {
     var adapter: ArrayAdapter<String>? = null
     private var mediaRecorder: MediaRecorder? = null
     private var start: Boolean = true
-    private var tracks: HashMap<String, LoopPlayer> = hashMapOf()
-    private var parent: String = Environment.getExternalStorageDirectory().absolutePath
+    private var parent: String = Environment.getExternalStorageDirectory().absolutePath + "/"
     private lateinit var lastPath: String
     private lateinit var lv: ListView
 
@@ -40,15 +39,14 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         paths = ArrayList()
-        val adapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, paths)
+        adapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, paths)
         lv = findViewById<ListView>(R.id.listview_1)
         lv.adapter = adapter
 
         mediaRecorder =  MediaRecorder()
-
-        mediaRecorder?.setAudioSource(MediaRecorder.AudioSource.MIC)
-        mediaRecorder?.setOutputFormat(MediaRecorder.OutputFormat.AAC_ADTS)
-        mediaRecorder?.setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
+//        mediaRecorder?.setAudioSource(MediaRecorder.AudioSource.MIC)
+//        mediaRecorder?.setOutputFormat(MediaRecorder.OutputFormat.AAC_ADTS)
+//        mediaRecorder?.setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
 
 
         button_start_recording.setOnClickListener {
@@ -61,18 +59,17 @@ class MainActivity : AppCompatActivity() {
                 ActivityCompat.requestPermissions(this, permissions,0)
             } else {
                 if(start){
-                    mediaRecorder?.setOutputFile(path)
+                    mediaRecorder?.setAudioSource(MediaRecorder.AudioSource.MIC)
+                    mediaRecorder?.setOutputFormat(MediaRecorder.OutputFormat.AAC_ADTS)
+                    mediaRecorder?.setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
+                    Toast.makeText(this, "Recording started!" + path, Toast.LENGTH_SHORT).show()
                     startRecording(path)
                     lastPath = path
-                    start = !start
-
                 } else {
+                    Toast.makeText(this, "Recording finished!" + path, Toast.LENGTH_SHORT).show()
                     stopRecording(lastPath)
-                    loopPlayer = LoopPlayer(lastPath)
-                    tracks[lastPath] = loopPlayer
-                    paths?.add(lastPath)
-                    tracks[lastPath]?.startPlaying()
                 }
+                start = !start
             }
 
         }
@@ -81,9 +78,9 @@ class MainActivity : AppCompatActivity() {
 
     private fun startRecording(path: String) {
         try {
+            mediaRecorder?.setOutputFile(path)
             mediaRecorder?.prepare()
             mediaRecorder?.start()
-            Toast.makeText(this, "Recording started!" + path, Toast.LENGTH_SHORT).show()
         } catch (e: IllegalStateException) {
             e.printStackTrace()
         } catch (e: IOException) {
@@ -93,16 +90,9 @@ class MainActivity : AppCompatActivity() {
 
 
     private fun stopRecording(path: String) {
-        try {
-            mediaRecorder?.stop()
-            mediaRecorder?.reset()
-            tracks[path]?.startPlaying()
-            start = true
-        } catch (e: IllegalStateException) {
-            e.printStackTrace()
-        } catch (e: IOException) {
-            e.printStackTrace()
-        }
+
+        mediaRecorder?.stop()
+        mediaRecorder?.reset()
 
     }
 //    override fun onRequestPermissionsResult(
