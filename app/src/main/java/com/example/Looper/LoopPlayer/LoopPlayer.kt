@@ -10,34 +10,30 @@ import javax.swing.UIManager.put
 import android.util.SparseArray
 import android.media.SoundPool
 import android.media.AudioAttributes
+import android.content.Context
+import android.content.Context.*
 import android.content.Context.AUDIO_SERVICE
+import android.support.v4.content.ContextCompat.getSystemService
 import android.support.v4.content.ContextCompat.getSystemService
 
 
 
 
-class LoopPlayer{
-    var SOUNDPOOLSND_MENU_BTN = 0
-    var SOUNDPOOLSND_WIN = 1
-    var SOUNDPOOLSND_LOOSE = 2
-    var SOUNDPOOLSND_DRAW = 3
-    var SOUNDPOOLSND_TICK1 = 4
-    var SOUNDPOOLSND_TICK2 = 5
-    var SOUNDPOOLSND_OUT_OF_TIME = 6
-    var SOUNDPOOLSND_HISCORE = 7
-    var SOUNDPOOLSND_CORRECT_LETTER = 8
 
-    var isSoundTurnedOff: Boolean = false
-    private var mAudioManager: AudioManager? = null
-    val streamVolume = mAudioManager?.getStreamVolume(AudioManager.STREAM_MUSIC)
 
+class LoopPlayer {
+
+    private var isSoundTurnedOff: Boolean = false
+    private var mAudioManager: AudioManager
+    private var streamVolume: Float
     private var mSoundPoolMap: SparseArray<Int>
 
 
     val maxSounds = 4
-    private var mSound: SoundPool
+    private var mSound: SoundPool?
     constructor(mContext: Context){
-        this.mAudioManager = mContext.getSystemService(Context.AUDIO_SERVICE)
+        this.mAudioManager = mContext.getSystemService(Context.AUDIO_SERVICE) as AudioManager
+        this.streamVolume = this.mAudioManager.getStreamVolume(AudioManager.STREAM_MUSIC).toFloat()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
 
             var audioAttrib: AudioAttributes = AudioAttributes.Builder()
@@ -76,19 +72,14 @@ class LoopPlayer{
     fun playSound(index: Int) {
         if (isSoundTurnedOff)
             return
-        var streamVolume: Float = mAudioManager?.getStreamVolume(AudioManager.STREAM_MUSIC)?.toFloat()
-        try {
-            mSound.play(mSoundPoolMap.get(index), streamVolume.toFloat(), streamVolume.toFloat(), 1, -1, 1f)
+        var streamVolume = mAudioManager?.getStreamVolume(AudioManager.STREAM_MUSIC)
+            mSound?.play(mSoundPoolMap.get(index), streamVolume.toFloat(), streamVolume.toFloat(), 1, -1, 1f)
 
 
     }
 
-//    fun clear() {
-//        if (mSoundManager != null) {
-//            mSoundManager!!.mSoundPool = null
-//            mSoundManager!!.mAudioManager = null
-//            mSoundManager!!.mSoundPoolMap = null
-//        }
-//        mSoundManager = null
-//    }
+    fun clear() {
+        mSound?.release()
+        mSound = null
+    }
 }
